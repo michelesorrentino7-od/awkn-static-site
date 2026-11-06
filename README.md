@@ -1,11 +1,12 @@
 # AWKN Static Site
 
-Static reconstruction of the AWKN® Korean Apothecary website (https://theawkn.com).
+High-fidelity static reconstruction of the AWKN® Korean Apothecary website (https://theawkn.com), built from scraped content and assets.
 
 ## Pages
-- `index.html` – Homepage
-- `product.html` – Product / Shop
-- `our-story.html` – Founders story
+- `index.html` – Homepage (hero, products, reviews, ingredients, story, details)
+- `product.html` – Night Owl products with real images and prices
+- `our-story.html` – Founders story and timeline
+- `ingredients.html` – Full ingredients list
 - `style.css` – Styles
 
 ## Deploy with GitHub Pages
@@ -16,4 +17,4 @@ Static reconstruction of the AWKN® Korean Apothecary website (https://theawkn.c
 
 Site will be available at: `https://michelesorrentino7-od.github.io/awkn-static-site/`
 
-This is a simplified static marketing version. Cart/checkout links point to the original site.
+Images are loaded from the original CDN for visual fidelity. Purchase links point to the original site.
