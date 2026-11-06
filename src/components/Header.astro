@@ -1,12 +1,12 @@
 ---
-import { nav } from "../data/site";
+import { nav, photos } from "../data/site";
 
 const current = Astro.url.pathname.split("/").pop() || "index.html";
 ---
 
 <header class="site-header">
   <a class="logo" href="index.html">
-    <img src="images/awkn_logo_black_height1000px_2230520a-8e19-4292-891f-c10ebce7b37e-1b4d98f1.png" alt="AWKN" />
+    <img src={photos.logo} alt="AWKN" />
   </a>
   <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
   <nav id="site-nav" class="site-nav">

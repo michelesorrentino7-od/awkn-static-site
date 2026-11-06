@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import ProductCard from "../components/ProductCard.astro";
-import { ingredients, products, reviews } from "../data/site";
+import { ingredients, photos, products, reviews } from "../data/site";
 ---
 
 <Base
@@ -21,7 +21,7 @@ import { ingredients, products, reviews } from "../data/site";
       </div>
     </div>
     <div class="hero-visual">
-      <img src="images/awkn-10pk-front-transparent_da3c33f0-299c-4936-b9f3-289120b15d55-5dceca9f.png" alt="Night Owl 10 shot box" />
+      <img src={photos.pack10} alt="Night Owl 10 shot box" />
       <p class="seal">Made in<br />Korea</p>
     </div>
   </section>
@@ -41,7 +41,7 @@ import { ingredients, products, reviews } from "../data/site";
   </section>
 
   <section class="split">
-    <img src="images/awkn-website-3-kbeauty-recovery-fb1539b8.jpg" alt="AWKN shot beside a glass" />
+    <img src={photos.heroStill} alt="AWKN shot beside a glass" />
     <div>
       <p class="kicker">K-beauty, but for your drink</p>
       <h2>From the lab to the pub</h2>
@@ -109,7 +109,7 @@ import { ingredients, products, reviews } from "../data/site";
   </section>
 
   <section class="founders">
-    <img src="images/awkn_founders_soom_tess_teamphoto-215947bf.jpg" alt="Soom and Tess, the founders of AWKN" />
+    <img src={photos.founders} alt="Soom and Tess, the founders of AWKN" />
     <div class="founder-copy">
       <p class="kicker">Korean sisters with a dream</p>
       <h2>From our family to yours</h2>

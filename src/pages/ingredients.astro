@@ -1,6 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
-import { ingredients } from "../data/site";
+import { ingredients, photos } from "../data/site";
 ---
 
 <Base
@@ -27,7 +27,7 @@ import { ingredients } from "../data/site";
         Ingredients are only half of it. Formulation is the other half, done with laboratory experience in Korea, under HACCP and GMP.
       </p>
     </div>
-    <img src="images/awkn-website-science-lab-formulation-15a8695c.jpg" alt="Laboratory formulation for AWKN" />
+    <img src={photos.lab} alt="Laboratory formulation for AWKN" />
   </section>
   <section class="section">
     <div class="ingredient-grid">

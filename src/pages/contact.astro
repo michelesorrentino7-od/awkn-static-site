@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import { photos } from "../data/site";
 ---
 
 <Base
@@ -19,6 +20,6 @@ import Base from "../layouts/Base.astro";
       <p>Everything else<br /><a href="mailto:hello@theawkn.com">hello@theawkn.com</a></p>
       <p>Shop<br /><a href="https://theawkn.com">theawkn.com</a></p>
     </address>
-    <img src="images/awkn-ladning-page-banner-our-story-mobile-410616e5.jpg" alt="AWKN story still" />
+    <img src={photos.contactStill} alt="AWKN story still" />
   </section>
 </Base>
