@@ -1,0 +1,269 @@
+/* Static reconstruction layer.
+   The Broadcast theme CSS is loaded as-is. These rules only replace
+   behaviour that the original theme gets from Shopify JS (Flickity,
+   lazy-load, AOS, Judge.me, Swiper, cart drawer). */
+
+/* Theme script adds .is-loaded before showing the header and announcement. */
+body:not(.is-loaded) .header__desktop,
+body:not(.is-loaded) .announcement__wrapper {
+  opacity: 1 !important;
+}
+
+img.is-loading,
+.lazy-image img.is-loading,
+.lazy-image.is-loading img,
+.video__player.is-loading,
+video-background.is-loading {
+  opacity: 1 !important;
+}
+
+/* Custom elements are inline until the theme script defines them. */
+video-background,
+announcement-bar,
+ticker-bar,
+slider-component,
+hover-images,
+grid-slider,
+mobile-menu,
+popout-select,
+predictive-search {
+  display: block;
+}
+hover-images {
+  width: 100%;
+  opacity: 1 !important;
+}
+video-background {
+  width: 100%;
+  height: 100%;
+}
+video-background video,
+.video__player video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+[data-aos],
+.aos-initialized [data-aos],
+[data-animation="drawer-items-fade"] {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Press-logo and benefit strips scroll as a marquee without the ticker script. */
+.announcement__bar-holder--marquee {
+  overflow: hidden;
+}
+.announcement__bar-holder--marquee .announcement__scale {
+  animation: ticker-rtl 36s linear infinite;
+  width: max-content;
+}
+.page-announcement .announcement__text {
+  white-space: nowrap;
+}
+
+/* Judge.me ships the carousel as display:none until its script runs. */
+.jdgm-widget.jdgm-carousel {
+  display: block !important;
+}
+.jdgm-carousel-wrapper {
+  padding: 28px 0 10px;
+}
+.jdgm-carousel__item-wrapper {
+  display: flex !important;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 4px 24px 20px;
+}
+.jdgm-carousel-item {
+  flex: 0 0 260px;
+  max-width: 280px;
+  scroll-snap-align: start;
+}
+.jdgm-carousel__arrows {
+  display: none !important;
+}
+.jdgm-star::before {
+  content: "★" !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-style: normal;
+}
+.jdgm-carousel-item__review-body {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Mobile drawer. Theme JS normally mounts this; we toggle .menu-open. */
+header-drawer {
+  display: none;
+}
+body.menu-open header-drawer {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: #fff;
+  overflow: auto;
+}
+body.menu-open header-drawer .drawer__inner {
+  position: fixed !important;
+  inset: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  min-height: 100%;
+  background: #fff;
+  padding: 12px 8px 48px;
+  transform: none !important;
+}
+body.menu-open .drawer__inner,
+body.menu-open .drawer__body,
+body.menu-open .drawer__content,
+body.menu-open .drawer__content__scroll,
+body.menu-open .drawer__menu,
+body.menu-open .sliderow,
+body.menu-open .sliderow__title,
+body.menu-open .mobile-menu__block,
+body.menu-open .mobile-menu__block-inner {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+body.menu-open {
+  overflow: hidden;
+}
+.sliderow__title {
+  display: block;
+  padding: 16px 18px;
+  font-family: var(--FONT-STACK-NAV, Poppins, sans-serif);
+  font-size: 22px;
+  color: var(--COLOR-TEXT, #252525);
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+}
+.header__mobile__hamburger,
+.drawer__close {
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+header-search-popdown {
+  display: inline-flex;
+}
+header-search-popdown summary {
+  list-style: none;
+  cursor: pointer;
+}
+header-search-popdown summary::-webkit-details-marker {
+  display: none;
+}
+
+dialog:not([open]) {
+  display: none !important;
+}
+
+shopify-chat,
+shopify-store,
+#shopify-chat,
+.shopify-payment-button,
+shopify-accelerated-checkout,
+shopify-payment-terms,
+.h-captcha,
+.hcaptcha-box {
+  display: none !important;
+}
+
+/* "Seen in the wild" video row without Swiper. */
+.swiper {
+  overflow: hidden;
+}
+.swiper-wrapper {
+  display: flex !important;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 8px 24px 28px;
+  transform: none !important;
+}
+.swiper-slide {
+  flex: 0 0 220px !important;
+  width: 220px !important;
+  max-width: 220px;
+  height: auto !important;
+  scroll-snap-align: start;
+  margin: 0 !important;
+}
+[class*="video-slider-video"] {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  background: #1a1a1a;
+  border-radius: 18px;
+  overflow: hidden;
+}
+[class*="video-slider-video"] video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+}
+[class*="video-slider-control"],
+[class*="video-play-label"] {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+[class*="video-slider-content"] {
+  padding-top: 10px;
+}
+
+/* The loading underlay sits above the photo until Flickity runs.
+   Do not change .product-item__bg positioning: it is absolutely filled by the theme. */
+.product-item__bg__under {
+  background: transparent !important;
+  pointer-events: none;
+}
+.product-item__bg__slider,
+.product-item__bg__slide {
+  position: relative;
+  z-index: 2;
+}
+.product-item__bg__slide[data-hover-slide] {
+  display: none;
+}
+
+/* Add-to-cart anchors inherit the theme button, and must not be underlined. */
+a.btn,
+a.product-item__submit,
+button.btn {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Newsletter is a link back to the live store, not a broken Shopify form. */
+.static-join {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 749px) {
+  .jdgm-carousel-item {
+    flex-basis: 82%;
+    max-width: none;
+  }
+  .swiper-slide {
+    flex-basis: 68vw !important;
+    width: 68vw !important;
+    max-width: 68vw;
+  }
+}
