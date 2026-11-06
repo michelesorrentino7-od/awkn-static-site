@@ -1,0 +1,24 @@
+---
+import type { Product } from "../data/site";
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+---
+
+<a class="card" href={product.file}>
+  <div class="card-media">
+    <img src={product.image} alt={`${product.name} ${product.size}`} />
+  </div>
+  <div class="card-body">
+    <strong>{product.name}</strong>
+    <span>{product.size}</span>
+    <span class="price">
+      {product.price}
+      {product.compare && <s>{product.compare}</s>}
+    </span>
+    <span class="unit">{product.unit}</span>
+  </div>
+</a>

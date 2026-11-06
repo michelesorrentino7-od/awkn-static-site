@@ -1,0 +1,9 @@
+---
+import ProductView from "../components/ProductView.astro";
+import { products } from "../data/site";
+
+const product = products.find((item) => item.file === "product-30.html");
+if (!product) throw new Error("Missing 30 shot product");
+---
+
+<ProductView product={product} />

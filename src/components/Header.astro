@@ -1,0 +1,30 @@
+---
+import { nav } from "../data/site";
+
+const current = Astro.url.pathname.split("/").pop() || "index.html";
+---
+
+<header class="site-header">
+  <a class="logo" href="index.html">
+    <img src="images/awkn_logo_black_height1000px_2230520a-8e19-4292-891f-c10ebce7b37e-1b4d98f1.png" alt="AWKN" />
+  </a>
+  <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+  <nav id="site-nav" class="site-nav">
+    {
+      nav.map((item) => (
+        <a href={item.href} aria-current={current === item.href ? "page" : undefined}>
+          {item.label}
+        </a>
+      ))
+    }
+  </nav>
+  <a class="header-buy" href="shop.html">Shop Night Owl</a>
+</header>
+
+<script>
+  const button = document.querySelector(".nav-toggle");
+  button?.addEventListener("click", () => {
+    const open = document.body.classList.toggle("nav-open");
+    button.setAttribute("aria-expanded", String(open));
+  });
+</script>

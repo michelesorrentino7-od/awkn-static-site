@@ -1,0 +1,145 @@
+---
+import Base from "../layouts/Base.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { ingredients, products, reviews } from "../data/site";
+---
+
+<Base
+  title="Natural Korean Hangover, Recovery and Wellness Shots – AWKN®"
+  description="Recovery and wellness shots that combine Korean apothecary with vitamins and nutrients, so the next morning has a head start."
+>
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="kicker">Night Owl · Made in Korea</p>
+      <h1>Not a hangover cure. Just a head start.</h1>
+      <p class="lede">
+        Korean apothecary for modern, responsible drinking. A pear shot with eleven chosen ingredients, taken before the night and again before bed.
+      </p>
+      <div class="actions">
+        <a class="button" href="shop.html">Shop the shots</a>
+        <a class="button ghost" href="our-story.html">Meet the sisters</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <img src="images/awkn-10pk-front-transparent_da3c33f0-299c-4936-b9f3-289120b15d55-5dceca9f.png" alt="Night Owl 10 shot box" />
+      <p class="seal">Made in<br />Korea</p>
+    </div>
+  </section>
+
+  <div class="marquee">
+    <p>Pear · Red ginseng · Curcumin · Ginger · Reishi · Vitamin B6 · Artichoke · Probiotics · Pear · Red ginseng · Curcumin · Ginger</p>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>The Night Owl range</h2>
+      <p>Four sizes. Same formula. Checkout stays on the original shop.</p>
+    </div>
+    <div class="product-grid">
+      {products.map((product) => <ProductCard product={product} />)}
+    </div>
+  </section>
+
+  <section class="split">
+    <img src="images/awkn-website-3-kbeauty-recovery-fb1539b8.jpg" alt="AWKN shot beside a glass" />
+    <div>
+      <p class="kicker">K-beauty, but for your drink</p>
+      <h2>From the lab to the pub</h2>
+      <p class="lede">
+        Each shot is formulated with nutritionists in Korea. The idea is old: support the body before the morning asks for it. The formula is specific.
+      </p>
+      <div class="actions">
+        <a class="button" href="ingredients.html">Read the science</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="steps">
+      <article class="step">
+        <span>01</span>
+        <h3>Set up</h3>
+        <p>One shot as the evening starts. Pear, not syrup.</p>
+      </article>
+      <article class="step">
+        <span>02</span>
+        <h3>Stay in it</h3>
+        <p>Work drinks, weddings, the dinner that becomes a night.</p>
+      </article>
+      <article class="step">
+        <span>03</span>
+        <h3>Sleep on it</h3>
+        <p>A second shot before bed if the plan ran long. Then the morning.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>From the people who took it</h2>
+      <p>4.9/5 on verified reviews of the original shop.</p>
+    </div>
+    <div class="review-row">
+      {
+        reviews.map((review) => (
+          <blockquote class="review">
+            <p>{review.text}</p>
+            <cite>{review.name}</cite>
+          </blockquote>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Nature is the pharmacy</h2>
+      <a href="ingredients.html">All ingredients</a>
+    </div>
+    <div class="ingredient-grid">
+      {
+        ingredients.map((item) => (
+          <figure class="ingredient">
+            <img src={item.image} alt={item.name} />
+            <span>{item.name}</span>
+          </figure>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="founders">
+    <img src="images/awkn_founders_soom_tess_teamphoto-215947bf.jpg" alt="Soom and Tess, the founders of AWKN" />
+    <div class="founder-copy">
+      <p class="kicker">Korean sisters with a dream</p>
+      <h2>From our family to yours</h2>
+      <p>
+        Tess and Soom built AWKN after a year of research, to bring a personal ritual from their culture into nights that still have a morning attached.
+      </p>
+      <div class="actions">
+        <a class="button ghost" href="our-story.html">Our story</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="quality">
+      <article>
+        <h3>HACCP</h3>
+        <p>Approved production, made in Korea.</p>
+      </article>
+      <article>
+        <h3>GMP</h3>
+        <p>Certified manufacturing standards.</p>
+      </article>
+      <article>
+        <h3>30 years</h3>
+        <p>Formulated with long laboratory experience.</p>
+      </article>
+      <article>
+        <h3>Women built</h3>
+        <p>Founded by two sisters. Bought by people who host.</p>
+      </article>
+    </div>
+  </section>
+</Base>

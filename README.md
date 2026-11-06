@@ -1,45 +1,43 @@
-# AWKN® — sito statico
+# AWKN®
 
-Ricostruzione statica del sito [theawkn.com](https://theawkn.com) (AWKN® Korean Apothecary). Layout, tipografia e colori arrivano dal tema Shopify Broadcast (`theme.css` e fogli di sezione). I testi e le foto sono quelli del sito live, salvati in locale.
+A modern static rebuild of the AWKN Korean Apothecary site. The pages are [Astro](https://astro.build) components. The published files at the root are the build, so GitHub Pages can serve them directly.
 
-Non è un clone pixel-perfect al 100%: carrello, checkout, ricerca e iscrizione alla newsletter restano sul sito originale. I pulsanti **Add to Cart** aprono la pagina prodotto su theawkn.com.
+Orders and checkout stay on [theawkn.com](https://theawkn.com). This version has no cart.
 
-## Pagine
+## Pages
 
-| File | Contenuto |
+| File | Page |
 | --- | --- |
-| `index.html` | Homepage: hero, press, Night Owl, benefici, recensioni, ingredienti, founder, qualità |
-| `shop.html` | Shop / collezione |
-| `product.html` | Night Owl 10x |
-| `product-30.html` | Night Owl 30x |
-| `product-4.html` | Night Owl 4x |
-| `product-90.html` | Bundle 3×30 |
-| `our-story.html` | Our Story |
-| `ingredients.html` | Science / Ingredients |
+| `index.html` | Home |
+| `shop.html` | Shop |
+| `product-4.html` | Night Owl 4 shots |
+| `product.html` | Night Owl 10 shots |
+| `product-30.html` | Night Owl 30 shots |
+| `product-90.html` | 3 × 30 bundle |
+| `our-story.html` | Founders |
+| `ingredients.html` | Science |
 | `faq.html` | FAQ |
-| `contact.html` | Contatti |
+| `contact.html` | Contact |
+
+The previous Shopify-theme copy is in `legacy/`.
+
+## Develop
+
+```bash
+npm install
+npm run dev
+```
+
+Open `http://127.0.0.1:4321/`.
+
+```bash
+npm run build
+```
+
+That writes `dist/` and copies the pages back to the repository root, next to `images/`.
 
 ## GitHub Pages
 
-1. Apri il repository su GitHub → **Settings** → **Pages**.
-2. In **Build and deployment**, scegli **Deploy from a branch**.
-3. Branch: `main` (dopo il merge) e cartella **`/ (root)`**.
-4. Salva.
+Pages is already set to this repository, folder `/`. After a build is committed on the branch Pages publishes, the site is:
 
-Il file `.nojekyll` è già presente, così Pages pubblica anche le cartelle che iniziano con un punto e non passa i file da Jekyll.
-
-L’indirizzo sarà simile a `https://<utente>.github.io/<repository>/`.
-
-In locale:
-
-```bash
-python3 -m http.server 8765
-```
-
-Poi apri `http://127.0.0.1:8765/`.
-
-## Struttura
-
-- `assets/` — CSS del tema Broadcast più `static.css` / `static.js` (menu mobile, caroselli senza lo JavaScript di Shopify)
-- `images/` — foto prodotto, hero, founder e icone
-- `scripts/build_static.py` — rigenera le pagine a partire dall’HTML pubblico di theawkn.com
+https://michelesorrentino7-od.github.io/awkn-static-site/

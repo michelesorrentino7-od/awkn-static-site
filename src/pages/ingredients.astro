@@ -1,0 +1,44 @@
+---
+import Base from "../layouts/Base.astro";
+import { ingredients } from "../data/site";
+---
+
+<Base
+  title="Our Ingredients – AWKN® Korean Apothecary"
+  description="What is inside the Night Owl shot, why acetaldehyde matters, and how the formula was built in Korea."
+>
+  <header class="page-hero">
+    <p class="kicker">Science</p>
+    <h1>Important things take a little thinking.</h1>
+    <p class="lede narrow">
+      What is inside Night Owl, why it is there, and why the formula was not a handful of trendy ingredients in a shot.
+    </p>
+  </header>
+  <section class="science-grid">
+    <div class="narrow">
+      <h2>Alcohol does not do one thing.</h2>
+      <p>
+        When we drink, the liver breaks alcohol down into acetaldehyde, an unwanted byproduct behind much of the next-day feeling. The body then works to turn that into acetate. The liver can metabolise about one standard drink an hour. Drink faster, and acetaldehyde builds.
+      </p>
+      <p>
+        Korean apothecary starts from a practical idea: support the body ahead of the symptom. Vitamin B6 has been linked in studies to a reduction in the severity of hangover symptoms. The rest of the formula is there to work in the same direction: nutrients alcohol draws down, botanicals chosen to sit together.
+      </p>
+      <p>
+        Ingredients are only half of it. Formulation is the other half, done with laboratory experience in Korea, under HACCP and GMP.
+      </p>
+    </div>
+    <img src="images/awkn-website-science-lab-formulation-15a8695c.jpg" alt="Laboratory formulation for AWKN" />
+  </section>
+  <section class="section">
+    <div class="ingredient-grid">
+      {
+        ingredients.map((item) => (
+          <figure class="ingredient">
+            <img src={item.image} alt={item.name} />
+            <span>{item.name}</span>
+          </figure>
+        ))
+      }
+    </div>
+  </section>
+</Base>

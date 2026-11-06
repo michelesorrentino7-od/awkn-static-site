@@ -1,0 +1,21 @@
+---
+import Base from "../layouts/Base.astro";
+import { faqs } from "../data/site";
+---
+
+<Base title="FAQs – AWKN® Korean Apothecary" description="How to take Night Owl, what it is, where it is made, and where orders are placed.">
+  <header class="page-hero">
+    <p class="kicker">FAQ</p>
+    <h1>Before you take it.</h1>
+  </header>
+  <div class="faq">
+    {
+      faqs.map((item) => (
+        <details>
+          <summary>{item.q}</summary>
+          <p>{item.a}</p>
+        </details>
+      ))
+    }
+  </div>
+</Base>

@@ -1,0 +1,14 @@
+---
+import { nav } from "../data/site";
+---
+
+<footer class="site-footer">
+  <strong>AWKN® Korean Apothecary</strong>
+  <nav class="footer-nav">
+    {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    <a href="https://theawkn.com">theawkn.com</a>
+  </nav>
+  <p class="disclaimer">
+    AWKN is a food supplement and is not intended to diagnose, treat, cure, or prevent any disease. It does not prevent intoxication and is not a substitute for a varied diet and a healthy lifestyle. Orders and checkout stay on theawkn.com.
+  </p>
+</footer>

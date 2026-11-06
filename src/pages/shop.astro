@@ -1,0 +1,21 @@
+---
+import Base from "../layouts/Base.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { products } from "../data/site";
+---
+
+<Base
+  title="Shop Korean Alcohol Recovery – AWKN®"
+  description="Night Owl liver support shots in boxes of 4, 10, 30, and a three-box bundle."
+>
+  <header class="page-hero">
+    <p class="kicker">Shop</p>
+    <h1>Feeling your best, deliciously simple.</h1>
+    <p class="lede">Take one before or after the evening, as part of the ritual. The cart itself lives on theawkn.com.</p>
+  </header>
+  <section class="section">
+    <div class="product-grid">
+      {products.map((product) => <ProductCard product={product} />)}
+    </div>
+  </section>
+</Base>
