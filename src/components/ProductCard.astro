@@ -9,7 +9,7 @@ const { product } = Astro.props;
 ---
 
 <a class="card" href={product.file}>
-  <div class="card-media">
+  <div class="card-media" data-seat="pack" data-seat-edge="inside">
     <img src={product.image} alt={`${product.name} ${product.size}`} />
   </div>
   <div class="card-body">

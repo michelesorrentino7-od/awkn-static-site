@@ -20,7 +20,11 @@ async function relativize(file) {
     .replaceAll('="/./_astro/', '="_astro/')
     .replaceAll('="/_astro/', '="_astro/')
     .replaceAll("url(/./_astro/", "url(_astro/")
-    .replaceAll("url(/_astro/", "url(_astro/");
+    .replaceAll("url(/_astro/", "url(_astro/")
+    .replaceAll("`/./_astro/", "`_astro/")
+    .replaceAll("`/_astro/", "`_astro/")
+    .replaceAll('"/./_astro/', '"_astro/')
+    .replaceAll('"/_astro/', '"_astro/');
   if (next !== text) await writeFile(file, next);
 }
 
@@ -29,5 +33,12 @@ for (const name of htmlFiles) await relativize(path.join(root, name));
 
 const astroDir = path.join(root, "_astro");
 for (const name of await readdir(astroDir)) {
-  if (name.endsWith(".css")) await relativize(path.join(astroDir, name));
+  const file = path.join(astroDir, name);
+  if (name.endsWith(".js")) await relativize(file);
+  if (!name.endsWith(".css")) continue;
+  await relativize(file);
+  // This file already lives in _astro, so its own urls are siblings, not _astro/_astro.
+  const text = await readFile(file, "utf8");
+  const next = text.replaceAll("url(_astro/", "url(./");
+  if (next !== text) await writeFile(file, next);
 }

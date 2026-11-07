@@ -29,5 +29,15 @@ const { title, description } = Astro.props;
       <slot />
     </main>
     <Footer />
+    <script>
+      import { mountOwl } from "../scripts/owl-mascot.mjs";
+      import directions from "../assets/owl/directions.webp?url";
+      import reactions from "../assets/owl/reactions.webp?url";
+      import takeoff from "../assets/owl/takeoff.png?url";
+      import flight from "../assets/owl/flight.png?url";
+      import landing from "../assets/owl/landing.png?url";
+
+      mountOwl({ directions, reactions, takeoff, flight, landing });
+    </script>
   </body>
 </html>

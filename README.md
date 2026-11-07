@@ -21,6 +21,8 @@ Orders and checkout stay on [theawkn.com](https://theawkn.com). This version has
 
 The previous Shopify-theme copy is in `legacy/`.
 
+A painted Night Owl, from the owl-mascot project, perches on the product pictures. It watches the pointer, hops when clicked, and flies to another picture when its seat leaves the screen. The paintings are part of the build. Reduced motion keeps it still.
+
 ## Develop
 
 ```bash
