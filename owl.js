@@ -3,7 +3,8 @@
    Uses owl-reactions.webp briefly on click.
    Flight still uses individual pose images from owl/poses/*.js
    Sheets loaded from owl-mascot repo for immediate availability.
-   Perch next to the N of AWKN on the logo margin. */
+   Perch next to the N of AWKN (level with the letter, not below).
+*/
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
@@ -74,10 +75,10 @@
     function seatPoint(el) {
       var r = el.getBoundingClientRect();
       var edge = el.dataset.seatEdge || "top";
-      // Special perch for the logo mast: next to the N, on the margin line
+      // Special perch for the logo mast: next to the N, level with the letter (not below)
       if (el.dataset.seat === "mast") {
-        // Logo is ~ AW KN®, place owl just after the N, aligned to the text baseline / margin
-        return { x: r.right - 18, y: r.top + r.height * 0.72 };
+        // Place feet roughly at the vertical center of the logo text, just after the N
+        return { x: r.right - 22, y: r.top + r.height * 0.42 };
       }
       if (edge === "right") return { x: r.right - 8, y: r.top + r.height * 0.4 };
       if (edge === "bottom") return { x: r.right - 56, y: r.bottom - 2 };
