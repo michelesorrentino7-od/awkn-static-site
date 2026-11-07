@@ -1,8 +1,7 @@
-/* Night Owl — advanced v5
-   Green-spot perch, cubic-ish flight arcs, weighted idle behaviors,
-   smoother easing, optional light drag-and-throw, reduced-motion support.
-*/
+/* Night Owl v23 — visible green-spot perch next to N
+   Console marker to confirm load. */
 (function () {
+  console.log("%cNight Owl v23 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
   var POSES = ["alert", "takeoff", "flight", "landing"];
@@ -70,7 +69,8 @@
     function seatPoint(el) {
       var r = el.getBoundingClientRect();
       if (el.dataset.seat === "mast") {
-        return { x: r.right + 62, y: r.top + r.height * 0.48 };
+        console.log("Mast seat x:", r.right + 48);
+        return { x: r.right + 48, y: r.top + r.height * 0.5 };
       }
       var edge = el.dataset.seatEdge || "top";
       if (edge === "right") return { x: r.right - 8, y: r.top + r.height * 0.4 };
@@ -153,7 +153,6 @@
       dirSheet.style.opacity = "1";
     }
 
-    // Click reaction
     button.addEventListener("click", function (event) {
       event.stopPropagation();
       if (flying || mode !== "sit" || dragging) return;
@@ -173,7 +172,6 @@
       reactSheet.style.backgroundPosition = cell(pick[0], pick[1]);
     });
 
-    // Optional light drag (hold and move)
     button.addEventListener("pointerdown", function (e) {
       if (flying || mode !== "sit" || reduced) return;
       dragging = true;
@@ -192,7 +190,6 @@
     window.addEventListener("pointerup", function () {
       if (dragging) {
         dragging = false;
-        // small throw velocity
         vx = (pointer.x - (x + dragOffset.x)) * 0.4;
         vy = (pointer.y - (y + dragOffset.y)) * 0.4;
         flying = true;
@@ -243,7 +240,6 @@
         var accel = Math.min(1, 2.0 * dt);
         vx += ((tx - x) / d * speed - vx) * accel;
         vy += ((ty - y) / d * speed - vy) * accel;
-        // Bezier-like vertical arc
         if (mode === "fly" && dist > 100) {
           var t = Math.min(1, modeT / 1.4);
           vy += arcDir * 42 * Math.sin(t * Math.PI) * dt * 60;
@@ -278,7 +274,6 @@
         }
       }
 
-      // Weighted idle behaviors while sitting
       if (mode === "sit" && !showReaction && !dragging) {
         idlePhase += dt;
         if (near && pointer.on) {
@@ -300,7 +295,6 @@
           boredAt = Math.max(boredAt, now + 7000);
           idlePhase = 0;
         } else {
-          // Weighted idle: mostly center, occasional side glances, rare soft hop
           if (idlePhase > 5.5) {
             var roll = Math.random();
             if (roll < 0.45) dirSheet.style.backgroundPosition = cell(1, 1);
