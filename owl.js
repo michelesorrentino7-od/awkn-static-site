@@ -1,5 +1,5 @@
 /* Night Owl — sprite-sheet companion for the AWKN static site.
-   Perch forced far right on the green spot next to the N of AWKN. v2 */
+   Perch forced far right on the green spot next to the N of AWKN. v3 — rebuild triggered. */
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
