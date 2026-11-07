@@ -1,10 +1,5 @@
 /* Night Owl — sprite-sheet companion for the AWKN static site.
-   Uses owl-directions.webp (3x3) for gaze while perched.
-   Uses owl-reactions.webp briefly on click.
-   Flight still uses individual pose images from owl/poses/*.js
-   Sheets loaded from owl-mascot repo for immediate availability.
-   Perch next to the N of AWKN (level with the letter, not below).
-*/
+   Perch on the green spot next to the N of AWKN. */
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
@@ -42,14 +37,12 @@
     var shadow = host.querySelector(".shadow");
     var hello = host.querySelector(".hello");
 
-    // Directions sheet
     var dirSheet = document.createElement("div");
     dirSheet.className = "sheet";
     dirSheet.style.backgroundImage = "url(" + DIR_SHEET + ")";
     dirSheet.style.backgroundPosition = cell(1, 1);
     sprite.appendChild(dirSheet);
 
-    // Reactions sheet
     var reactSheet = document.createElement("div");
     reactSheet.className = "sheet";
     reactSheet.style.backgroundImage = "url(" + REACT_SHEET + ")";
@@ -74,12 +67,11 @@
 
     function seatPoint(el) {
       var r = el.getBoundingClientRect();
-      var edge = el.dataset.seatEdge || "top";
-      // Special perch for the logo mast: next to the N, level with the letter (not below)
       if (el.dataset.seat === "mast") {
-        // Place feet roughly at the vertical center of the logo text, just after the N
-        return { x: r.right - 22, y: r.top + r.height * 0.42 };
+        // Green spot: right of the N®, on the margin line, roughly mid-to-lower of the text height
+        return { x: r.right + 28, y: r.top + r.height * 0.68 };
       }
+      var edge = el.dataset.seatEdge || "top";
       if (edge === "right") return { x: r.right - 8, y: r.top + r.height * 0.4 };
       if (edge === "bottom") return { x: r.right - 56, y: r.bottom - 2 };
       return { x: r.left + Math.min(r.width * 0.62, r.width - 36), y: r.top + 1 };
@@ -121,7 +113,6 @@
         return el !== seat && seatVisible(el);
       });
       if (!all.length) return null;
-      // Prefer seats that are closer horizontally for cleaner routes
       var midY = window.innerHeight * 0.42;
       all.sort(function (a, b) {
         var ra = a.getBoundingClientRect();
@@ -161,7 +152,6 @@
       show("alert");
       hello.hidden = false;
       helloUntil = performance.now() + 1600;
-      // Reaction sheet
       showReaction = true;
       reactionUntil = performance.now() + 650;
       dirSheet.style.opacity = "0";
@@ -210,7 +200,7 @@
       if ((mode === "takeoff" || mode === "fly") && !reduced) {
         var d = Math.max(1, dist);
         var accel = Math.min(1, 2.2 * dt);
-        vx += ((tx - x) / d * 420 - vx) * accel; // slightly slower for cleaner routes
+        vx += ((tx - x) / d * 420 - vx) * accel;
         vy += ((ty - y) / d * 420 - vy) * accel;
         x += vx * dt; y += vy * dt;
       } else {
@@ -241,7 +231,6 @@
         }
       }
 
-      // Tracking while sitting
       if (mode === "sit" && !showReaction) {
         if (near && pointer.on) {
           var dx = pointer.x - x;
