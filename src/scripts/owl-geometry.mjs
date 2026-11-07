@@ -8,6 +8,11 @@ export function owlSize(viewportWidth) {
   return { width, height, bodyAbove: height * (FEET / SRC_H) };
 }
 
+export function sheetPosition(col, row) {
+  // Percentage positions on a 3×3 sheet. 33% lands on the seam between cells.
+  return { x: col * 50, y: row * 50 };
+}
+
 export function gazeCell(deg) {
   let col = 1;
   let row = 1;

@@ -8,6 +8,7 @@ import {
   clearPerch,
   gazeCell,
   owlSize,
+  sheetPosition,
   seatPoint,
   seatVisible,
 } from "./owl-geometry.mjs";
@@ -28,6 +29,13 @@ test("gaze sheet uses the same angle buckets as the mascot", () => {
   assert.deepEqual(gazeCell(180), { col: 1, row: 2 });
   assert.deepEqual(gazeCell(270), { col: 0, row: 1 });
   assert.deepEqual(gazeCell(20), { col: 1, row: 0 });
+});
+
+test("a 3 by 3 sheet lands on a whole owl, not the seam between cells", () => {
+  assert.deepEqual(sheetPosition(1, 1), { x: 50, y: 50 });
+  assert.deepEqual(sheetPosition(0, 0), { x: 0, y: 0 });
+  assert.deepEqual(sheetPosition(2, 2), { x: 100, y: 100 });
+  assert.notEqual(sheetPosition(1, 1).y, 33.33);
 });
 
 test("seat point follows the marked edge", () => {

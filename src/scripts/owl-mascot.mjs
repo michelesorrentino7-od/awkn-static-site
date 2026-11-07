@@ -1,4 +1,4 @@
-import { bundledAsset, clearPerch, gazeCell, owlSize, seatPoint, seatVisible } from "./owl-geometry.mjs";
+import { bundledAsset, clearPerch, gazeCell, owlSize, seatPoint, seatVisible, sheetPosition } from "./owl-geometry.mjs";
 
 const POSES = ["takeoff", "flight", "landing"];
 
@@ -81,8 +81,9 @@ export function mountOwl(assets, doc = document) {
   };
 
   const showSheet = (image, col, row) => {
+    const pos = sheetPosition(col, row);
     sheet.style.backgroundImage = `url("${image}")`;
-    sheet.style.backgroundPosition = `${col * 33.33}% ${row * 33.33}%`;
+    sheet.style.backgroundPosition = `${pos.x}% ${pos.y}%`;
     sheet.style.opacity = "1";
     for (const img of poseImages) img.style.opacity = "0";
   };
