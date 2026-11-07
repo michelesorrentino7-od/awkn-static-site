@@ -1,5 +1,5 @@
 /* Night Owl — sprite-sheet companion for the AWKN static site.
-   Perch on the green spot next to the N of AWKN. */
+   Perch on the green spot next to the N of AWKN. Updated offset. */
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
@@ -68,8 +68,8 @@
     function seatPoint(el) {
       var r = el.getBoundingClientRect();
       if (el.dataset.seat === "mast") {
-        // Green spot: right of the N®, on the margin line, roughly mid-to-lower of the text height
-        return { x: r.right + 28, y: r.top + r.height * 0.68 };
+        // Green spot: clearly to the right of the N®, aligned to the lower half of the text
+        return { x: r.right + 48, y: r.top + r.height * 0.72 };
       }
       var edge = el.dataset.seatEdge || "top";
       if (edge === "right") return { x: r.right - 8, y: r.top + r.height * 0.4 };
