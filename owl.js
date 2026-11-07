@@ -2,7 +2,8 @@
    Uses owl-directions.webp (3x3) for gaze while perched.
    Uses owl-reactions.webp briefly on click.
    Flight still uses individual pose images from owl/poses/*.js
-   Sheets loaded from owl-mascot repo for immediate availability. */
+   Sheets loaded from owl-mascot repo for immediate availability.
+   Perch next to the N of AWKN on the logo margin. */
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
@@ -73,6 +74,11 @@
     function seatPoint(el) {
       var r = el.getBoundingClientRect();
       var edge = el.dataset.seatEdge || "top";
+      // Special perch for the logo mast: next to the N, on the margin line
+      if (el.dataset.seat === "mast") {
+        // Logo is ~ AW KN®, place owl just after the N, aligned to the text baseline / margin
+        return { x: r.right - 18, y: r.top + r.height * 0.72 };
+      }
       if (edge === "right") return { x: r.right - 8, y: r.top + r.height * 0.4 };
       if (edge === "bottom") return { x: r.right - 56, y: r.bottom - 2 };
       return { x: r.left + Math.min(r.width * 0.62, r.width - 36), y: r.top + 1 };
@@ -114,9 +120,14 @@
         return el !== seat && seatVisible(el);
       });
       if (!all.length) return null;
-      var mid = window.innerHeight * 0.42;
+      // Prefer seats that are closer horizontally for cleaner routes
+      var midY = window.innerHeight * 0.42;
       all.sort(function (a, b) {
-        return Math.abs(a.getBoundingClientRect().top - mid) - Math.abs(b.getBoundingClientRect().top - mid);
+        var ra = a.getBoundingClientRect();
+        var rb = b.getBoundingClientRect();
+        var da = Math.abs(ra.top - midY) + Math.abs(ra.left - x) * 0.4;
+        var db = Math.abs(rb.top - midY) + Math.abs(rb.left - x) * 0.4;
+        return da - db;
       });
       return all[0];
     }
@@ -198,8 +209,8 @@
       if ((mode === "takeoff" || mode === "fly") && !reduced) {
         var d = Math.max(1, dist);
         var accel = Math.min(1, 2.2 * dt);
-        vx += ((tx - x) / d * 480 - vx) * accel;
-        vy += ((ty - y) / d * 480 - vy) * accel;
+        vx += ((tx - x) / d * 420 - vx) * accel; // slightly slower for cleaner routes
+        vy += ((ty - y) / d * 420 - vy) * accel;
         x += vx * dt; y += vy * dt;
       } else {
         var follow = Math.min(1, dt * 7);
