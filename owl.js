@@ -1,5 +1,6 @@
 /* Night Owl — sprite-sheet companion for the AWKN static site.
-   Perch forced far right on the green spot next to the N of AWKN. v3 — rebuild triggered. */
+   Full polish v4: green-spot perch, smoother flight arcs, better idle presence,
+   snappier reactions, reduced-motion support. */
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
@@ -68,9 +69,8 @@
     function seatPoint(el) {
       var r = el.getBoundingClientRect();
       if (el.dataset.seat === "mast") {
-        // Forced green spot: far right of the logo, mid-height of the text
-        console.log("Mast seat at", r.right + 70);
-        return { x: r.right + 70, y: r.top + r.height * 0.5 };
+        // Green spot: clearly to the right of the N®, level with the text
+        return { x: r.right + 62, y: r.top + r.height * 0.48 };
       }
       var edge = el.dataset.seatEdge || "top";
       if (edge === "right") return { x: r.right - 8, y: r.top + r.height * 0.4 };
@@ -92,7 +92,7 @@
     var flying = false;
     var mode = "sit";
     var modeT = 0;
-    var boredAt = performance.now() + 16000;
+    var boredAt = performance.now() + 14000;
     var hopT = -1;
     var flip = false;
     var last = performance.now();
@@ -101,6 +101,7 @@
     var current = "perch";
     var pointer = { x: 0, y: 0, on: false };
     var showReaction = false;
+    var arc = 0; // for smoother flight arcs
 
     function show(next) {
       if (next === current) return;
@@ -118,8 +119,8 @@
       all.sort(function (a, b) {
         var ra = a.getBoundingClientRect();
         var rb = b.getBoundingClientRect();
-        var da = Math.abs(ra.top - midY) + Math.abs(ra.left - x) * 0.4;
-        var db = Math.abs(rb.top - midY) + Math.abs(rb.left - x) * 0.4;
+        var da = Math.abs(ra.top - midY) + Math.abs(ra.left - x) * 0.35;
+        var db = Math.abs(rb.top - midY) + Math.abs(rb.left - x) * 0.35;
         return da - db;
       });
       return all[0];
@@ -139,6 +140,7 @@
       flying = true;
       mode = "takeoff";
       modeT = 0;
+      arc = Math.random() > 0.5 ? 1 : -1;
       flip = tx < x - 12;
       show("takeoff");
       showReaction = false;
@@ -151,10 +153,12 @@
       if (flying || mode !== "sit") return;
       hopT = 0;
       show("alert");
-      hello.hidden = false;
-      helloUntil = performance.now() + 1600;
+      if (!reduced) {
+        hello.hidden = false;
+        helloUntil = performance.now() + 1400;
+      }
       showReaction = true;
-      reactionUntil = performance.now() + 650;
+      reactionUntil = performance.now() + 550;
       dirSheet.style.opacity = "0";
       reactSheet.style.opacity = "1";
       var cells = [[1,0],[0,1],[2,1],[1,2]];
@@ -200,38 +204,45 @@
       var dist = Math.hypot(tx - x, ty - y);
       if ((mode === "takeoff" || mode === "fly") && !reduced) {
         var d = Math.max(1, dist);
-        var accel = Math.min(1, 2.2 * dt);
-        vx += ((tx - x) / d * 420 - vx) * accel;
-        vy += ((ty - y) / d * 420 - vy) * accel;
+        var speed = 380;
+        var accel = Math.min(1, 2.4 * dt);
+        vx += ((tx - x) / d * speed - vx) * accel;
+        vy += ((ty - y) / d * speed - vy) * accel;
+        // Subtle arc
+        if (mode === "fly" && dist > 80) {
+          vy += arc * 28 * Math.sin(modeT * 2.2);
+        }
         x += vx * dt; y += vy * dt;
       } else {
-        var follow = Math.min(1, dt * 7);
+        var follow = Math.min(1, dt * 8);
         x += (tx - x) * follow;
         y += (ty - y) * follow;
-        vx *= 0.6; vy *= 0.6;
+        vx *= 0.55; vy *= 0.55;
       }
 
       if (mode === "takeoff") {
         modeT += dt;
-        if (modeT > 0.42) {
-          mode = dist < 50 ? "land" : "fly";
+        if (modeT > 0.38) {
+          mode = dist < 46 ? "land" : "fly";
           modeT = 0;
           show(mode === "fly" ? "flight" : "landing");
         }
       } else if (mode === "fly") {
-        if (dist < 40) { mode = "land"; modeT = 0; show("landing"); }
-        else if (vx < -24) flip = true;
-        else if (vx > 24) flip = false;
+        modeT += dt;
+        if (dist < 36) { mode = "land"; modeT = 0; show("landing"); }
+        else if (vx < -20) flip = true;
+        else if (vx > 20) flip = false;
       } else if (mode === "land") {
         modeT += dt;
-        if (modeT > 0.46) {
+        if (modeT > 0.42) {
           mode = "sit"; flying = false; vx = 0; vy = 0; x = tx; y = ty;
-          boredAt = now + 10000 + Math.random() * 6000;
+          boredAt = now + 9000 + Math.random() * 7000;
           modeT = 0;
           show("perch");
         }
       }
 
+      // Tracking + idle head turns while sitting
       if (mode === "sit" && !showReaction) {
         if (near && pointer.on) {
           var dx = pointer.x - x;
@@ -249,9 +260,16 @@
             else if (deg < 60 || deg > 300) row = 0;
             dirSheet.style.backgroundPosition = cell(col, row);
           }
-          boredAt = Math.max(boredAt, now + 7000);
+          boredAt = Math.max(boredAt, now + 8000);
         } else {
-          dirSheet.style.backgroundPosition = cell(1, 1);
+          // Occasional idle look
+          if (Math.random() < 0.008) {
+            var idleCells = [[0,1],[2,1],[1,0],[1,2]];
+            var idle = idleCells[Math.floor(Math.random() * idleCells.length)];
+            dirSheet.style.backgroundPosition = cell(idle[0], idle[1]);
+          } else if (Math.random() < 0.012) {
+            dirSheet.style.backgroundPosition = cell(1, 1);
+          }
         }
         dirSheet.style.opacity = "1";
       }
@@ -260,7 +278,7 @@
       var height = width * (SRC_H / SRC_W);
       var left = x - width / 2;
       var top = y - (FEET / SRC_H) * height;
-      var hopY = hopT >= 0 ? -Math.sin((hopT / 0.5) * Math.PI) * 12 : 0;
+      var hopY = hopT >= 0 ? -Math.sin((hopT / 0.45) * Math.PI) * 14 : 0;
       sprite.style.width = width + "px";
       sprite.style.height = height + "px";
       sprite.style.transform = "translate3d(" + left + "px," + (top + hopY) + "px,0) scaleX(" + (flip ? -1 : 1) + ")";
