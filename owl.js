@@ -1,6 +1,7 @@
-/* Night Owl — sprite-sheet companion for the AWKN static site.
-   Full polish v4: green-spot perch, smoother flight arcs, better idle presence,
-   snappier reactions, reduced-motion support. */
+/* Night Owl — advanced v5
+   Green-spot perch, cubic-ish flight arcs, weighted idle behaviors,
+   smoother easing, optional light drag-and-throw, reduced-motion support.
+*/
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
@@ -21,10 +22,10 @@
       "#awkn-owl{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden}",
       "#awkn-owl .sprite{position:absolute;top:0;left:0;will-change:transform}",
       "#awkn-owl .sheet{position:absolute;inset:0;background-size:300% 300%;background-repeat:no-repeat;pointer-events:none}",
-      "#awkn-owl img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;transition:opacity .2s}",
+      "#awkn-owl img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;transition:opacity .15s}",
       "#awkn-owl button{position:absolute;left:12%;right:12%;top:8%;bottom:14%;border:0;padding:0;background:transparent;cursor:pointer;pointer-events:auto}",
       "#awkn-owl .shadow{position:absolute;width:56px;height:14px;margin:-7px 0 0 -28px;border-radius:50%;background:rgba(61,31,92,.28);filter:blur(5px);pointer-events:none}",
-      "#awkn-owl .hello{position:absolute;background:#3D1F5C;color:#fff;font:500 13px/1.3 Inter,system-ui,sans-serif;padding:8px 12px;border-radius:14px;white-space:nowrap;pointer-events:none}",
+      "#awkn-owl .hello{position:absolute;background:#3D1F5C;color:#fff;font:500 13px/1.3 Inter,system-ui,sans-serif;padding:8px 12px;border-radius:14px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}",
       "#awkn-owl .hello:after{content:'';position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-top-color:#3D1F5C;border-bottom:0}"
     ].join("");
     document.head.appendChild(style);
@@ -69,7 +70,6 @@
     function seatPoint(el) {
       var r = el.getBoundingClientRect();
       if (el.dataset.seat === "mast") {
-        // Green spot: clearly to the right of the N®, level with the text
         return { x: r.right + 62, y: r.top + r.height * 0.48 };
       }
       var edge = el.dataset.seatEdge || "top";
@@ -92,7 +92,7 @@
     var flying = false;
     var mode = "sit";
     var modeT = 0;
-    var boredAt = performance.now() + 14000;
+    var boredAt = performance.now() + 12000;
     var hopT = -1;
     var flip = false;
     var last = performance.now();
@@ -101,7 +101,10 @@
     var current = "perch";
     var pointer = { x: 0, y: 0, on: false };
     var showReaction = false;
-    var arc = 0; // for smoother flight arcs
+    var arcDir = 1;
+    var dragging = false;
+    var dragOffset = { x: 0, y: 0 };
+    var idlePhase = 0;
 
     function show(next) {
       if (next === current) return;
@@ -119,14 +122,16 @@
       all.sort(function (a, b) {
         var ra = a.getBoundingClientRect();
         var rb = b.getBoundingClientRect();
-        var da = Math.abs(ra.top - midY) + Math.abs(ra.left - x) * 0.35;
-        var db = Math.abs(rb.top - midY) + Math.abs(rb.left - x) * 0.35;
+        var da = Math.abs(ra.top - midY) + Math.abs(ra.left - x) * 0.3;
+        var db = Math.abs(rb.top - midY) + Math.abs(rb.left - x) * 0.3;
+        if (a.dataset.seat === "mast") da -= 60;
+        if (b.dataset.seat === "mast") db -= 60;
         return da - db;
       });
       return all[0];
     }
     function takeoff() {
-      if (flying || mode !== "sit" || reduced) return;
+      if (flying || mode !== "sit" || reduced || dragging) return;
       var next = pickSeat();
       if (next) {
         seat = next;
@@ -140,7 +145,7 @@
       flying = true;
       mode = "takeoff";
       modeT = 0;
-      arc = Math.random() > 0.5 ? 1 : -1;
+      arcDir = Math.random() > 0.5 ? 1 : -1;
       flip = tx < x - 12;
       show("takeoff");
       showReaction = false;
@@ -148,26 +153,53 @@
       dirSheet.style.opacity = "1";
     }
 
+    // Click reaction
     button.addEventListener("click", function (event) {
       event.stopPropagation();
-      if (flying || mode !== "sit") return;
+      if (flying || mode !== "sit" || dragging) return;
       hopT = 0;
       show("alert");
       if (!reduced) {
         hello.hidden = false;
-        helloUntil = performance.now() + 1400;
+        hello.style.opacity = "1";
+        helloUntil = performance.now() + 1500;
       }
       showReaction = true;
-      reactionUntil = performance.now() + 550;
+      reactionUntil = performance.now() + 600;
       dirSheet.style.opacity = "0";
       reactSheet.style.opacity = "1";
-      var cells = [[1,0],[0,1],[2,1],[1,2]];
+      var cells = [[1,0],[0,1],[2,1],[1,2],[0,0]];
       var pick = cells[Math.floor(Math.random() * cells.length)];
       reactSheet.style.backgroundPosition = cell(pick[0], pick[1]);
     });
+
+    // Optional light drag (hold and move)
+    button.addEventListener("pointerdown", function (e) {
+      if (flying || mode !== "sit" || reduced) return;
+      dragging = true;
+      dragOffset.x = e.clientX - x;
+      dragOffset.y = e.clientY - y;
+      button.setPointerCapture(e.pointerId);
+    });
     window.addEventListener("pointermove", function (e) {
       pointer.x = e.clientX; pointer.y = e.clientY; pointer.on = true;
+      if (dragging) {
+        tx = e.clientX - dragOffset.x;
+        ty = e.clientY - dragOffset.y;
+        x = tx; y = ty;
+      }
     }, { passive: true });
+    window.addEventListener("pointerup", function () {
+      if (dragging) {
+        dragging = false;
+        // small throw velocity
+        vx = (pointer.x - (x + dragOffset.x)) * 0.4;
+        vy = (pointer.y - (y + dragOffset.y)) * 0.4;
+        flying = true;
+        mode = "fly";
+        show("flight");
+      }
+    });
     window.addEventListener("pointerout", function (e) {
       if (!e.relatedTarget) pointer.on = false;
     });
@@ -175,7 +207,10 @@
     function frame(now) {
       var dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      if (now > helloUntil) hello.hidden = true;
+      if (now > helloUntil) {
+        hello.style.opacity = "0";
+        if (now > helloUntil + 250) hello.hidden = true;
+      }
       if (reactionUntil && now > reactionUntil) {
         reactionUntil = 0;
         showReaction = false;
@@ -184,66 +219,68 @@
       }
 
       var near = pointer.on && Math.hypot(pointer.x - x, pointer.y - y) < 220;
-      if (!flying && seat && !seatVisible(seat) && !near && !reduced) takeoff();
-      if (!flying && !seat && !near && !reduced) takeoff();
-      if (!flying && !near && !reduced && now > boredAt) takeoff();
+      if (!flying && !dragging && seat && !seatVisible(seat) && !near && !reduced) takeoff();
+      if (!flying && !dragging && !seat && !near && !reduced) takeoff();
+      if (!flying && !dragging && !near && !reduced && now > boredAt) takeoff();
 
       if (flying && seat && !seatVisible(seat)) {
         var next = pickSeat();
         seat = next;
         if (!next) { var c = corner(); tx = c.x; ty = c.y; }
       }
-      if (flying && seat) {
+      if (flying && seat && !dragging) {
         var p = seatPoint(seat); tx = p.x; ty = p.y;
-      } else if (!flying && seat && seatVisible(seat)) {
+      } else if (!flying && seat && seatVisible(seat) && !dragging) {
         var p2 = seatPoint(seat); tx = p2.x; ty = p2.y;
-      } else if (!flying && !seat) {
+      } else if (!flying && !seat && !dragging) {
         var c2 = corner(); tx = c2.x; ty = c2.y;
       }
 
       var dist = Math.hypot(tx - x, ty - y);
-      if ((mode === "takeoff" || mode === "fly") && !reduced) {
+      if ((mode === "takeoff" || mode === "fly") && !reduced && !dragging) {
         var d = Math.max(1, dist);
-        var speed = 380;
-        var accel = Math.min(1, 2.4 * dt);
+        var speed = 360;
+        var accel = Math.min(1, 2.0 * dt);
         vx += ((tx - x) / d * speed - vx) * accel;
         vy += ((ty - y) / d * speed - vy) * accel;
-        // Subtle arc
-        if (mode === "fly" && dist > 80) {
-          vy += arc * 28 * Math.sin(modeT * 2.2);
+        // Bezier-like vertical arc
+        if (mode === "fly" && dist > 100) {
+          var t = Math.min(1, modeT / 1.4);
+          vy += arcDir * 42 * Math.sin(t * Math.PI) * dt * 60;
         }
         x += vx * dt; y += vy * dt;
-      } else {
-        var follow = Math.min(1, dt * 8);
+      } else if (!dragging) {
+        var follow = Math.min(1, dt * 10);
         x += (tx - x) * follow;
         y += (ty - y) * follow;
-        vx *= 0.55; vy *= 0.55;
+        vx *= 0.45; vy *= 0.45;
       }
 
       if (mode === "takeoff") {
         modeT += dt;
-        if (modeT > 0.38) {
-          mode = dist < 46 ? "land" : "fly";
+        if (modeT > 0.34) {
+          mode = dist < 42 ? "land" : "fly";
           modeT = 0;
           show(mode === "fly" ? "flight" : "landing");
         }
       } else if (mode === "fly") {
         modeT += dt;
-        if (dist < 36) { mode = "land"; modeT = 0; show("landing"); }
-        else if (vx < -20) flip = true;
-        else if (vx > 20) flip = false;
+        if (dist < 32 && !dragging) { mode = "land"; modeT = 0; show("landing"); }
+        else if (vx < -22) flip = true;
+        else if (vx > 22) flip = false;
       } else if (mode === "land") {
         modeT += dt;
-        if (modeT > 0.42) {
+        if (modeT > 0.38) {
           mode = "sit"; flying = false; vx = 0; vy = 0; x = tx; y = ty;
-          boredAt = now + 9000 + Math.random() * 7000;
+          boredAt = now + 8000 + Math.random() * 6000;
           modeT = 0;
           show("perch");
         }
       }
 
-      // Tracking + idle head turns while sitting
-      if (mode === "sit" && !showReaction) {
+      // Weighted idle behaviors while sitting
+      if (mode === "sit" && !showReaction && !dragging) {
+        idlePhase += dt;
         if (near && pointer.on) {
           var dx = pointer.x - x;
           var dy = pointer.y - y;
@@ -260,15 +297,17 @@
             else if (deg < 60 || deg > 300) row = 0;
             dirSheet.style.backgroundPosition = cell(col, row);
           }
-          boredAt = Math.max(boredAt, now + 8000);
+          boredAt = Math.max(boredAt, now + 7000);
+          idlePhase = 0;
         } else {
-          // Occasional idle look
-          if (Math.random() < 0.008) {
-            var idleCells = [[0,1],[2,1],[1,0],[1,2]];
-            var idle = idleCells[Math.floor(Math.random() * idleCells.length)];
-            dirSheet.style.backgroundPosition = cell(idle[0], idle[1]);
-          } else if (Math.random() < 0.012) {
-            dirSheet.style.backgroundPosition = cell(1, 1);
+          // Weighted idle: mostly center, occasional side glances, rare soft hop
+          if (idlePhase > 5.5) {
+            var roll = Math.random();
+            if (roll < 0.45) dirSheet.style.backgroundPosition = cell(1, 1);
+            else if (roll < 0.7) dirSheet.style.backgroundPosition = cell(0, 1);
+            else if (roll < 0.95) dirSheet.style.backgroundPosition = cell(2, 1);
+            else hopT = 0;
+            idlePhase = 0;
           }
         }
         dirSheet.style.opacity = "1";
@@ -278,7 +317,7 @@
       var height = width * (SRC_H / SRC_W);
       var left = x - width / 2;
       var top = y - (FEET / SRC_H) * height;
-      var hopY = hopT >= 0 ? -Math.sin((hopT / 0.45) * Math.PI) * 14 : 0;
+      var hopY = hopT >= 0 ? -Math.sin((hopT / 0.4) * Math.PI) * 16 : 0;
       sprite.style.width = width + "px";
       sprite.style.height = height + "px";
       sprite.style.transform = "translate3d(" + left + "px," + (top + hopY) + "px,0) scaleX(" + (flip ? -1 : 1) + ")";
