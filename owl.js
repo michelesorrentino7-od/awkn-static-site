@@ -2,16 +2,18 @@
    Uses owl-directions.webp (3x3) for gaze while perched.
    Uses owl-reactions.webp briefly on click.
    Flight still uses individual pose images from owl/poses/*.js
-*/
+   Sheets loaded from owl-mascot repo for immediate availability. */
 (function () {
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
   var POSES = ["alert", "takeoff", "flight", "landing"];
   var root = new URL("./", document.currentScript.src);
   var DEAD_ZONE = 80;
+  var DIR_SHEET = "https://raw.githubusercontent.com/michelesorrentino7-od/owl-mascot/main/public/owl/mascots/owl-directions.webp";
+  var REACT_SHEET = "https://raw.githubusercontent.com/michelesorrentino7-od/owl-mascot/main/public/owl/mascots/owl-reactions.webp";
 
   function cell(col, row) {
-    return (col * 50) + "% " + (row * 50) + "%";
+    return (col * 33.33) + "% " + (row * 33.33) + "%";
   }
 
   function boot() {
@@ -41,14 +43,14 @@
     // Directions sheet
     var dirSheet = document.createElement("div");
     dirSheet.className = "sheet";
-    dirSheet.style.backgroundImage = "url(" + new URL("owl/mascots/owl-directions.webp", root).href + ")";
+    dirSheet.style.backgroundImage = "url(" + DIR_SHEET + ")";
     dirSheet.style.backgroundPosition = cell(1, 1);
     sprite.appendChild(dirSheet);
 
     // Reactions sheet
     var reactSheet = document.createElement("div");
     reactSheet.className = "sheet";
-    reactSheet.style.backgroundImage = "url(" + new URL("owl/mascots/owl-reactions.webp", root).href + ")";
+    reactSheet.style.backgroundImage = "url(" + REACT_SHEET + ")";
     reactSheet.style.opacity = "0";
     sprite.appendChild(reactSheet);
 
