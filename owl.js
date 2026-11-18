@@ -1,7 +1,7 @@
-/* Night Owl v23 — visible green-spot perch next to N
-   Console marker to confirm load. */
+/* Night Owl v24 — continuous wing flap cycle during flight
+   Uses dense f00-f25 frames for precise wing animation. */
 (function () {
-  console.log("%cNight Owl v23 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
+  console.log("%cNight Owl v24 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
   var POSES = ["alert", "takeoff", "flight", "landing"];
@@ -9,6 +9,10 @@
   var DEAD_ZONE = 80;
   var DIR_SHEET = "https://raw.githubusercontent.com/michelesorrentino7-od/owl-mascot/main/public/owl/mascots/owl-directions.webp";
   var REACT_SHEET = "https://raw.githubusercontent.com/michelesorrentino7-od/owl-mascot/main/public/owl/mascots/owl-reactions.webp";
+  var FLIGHT_FRAMES = [];
+  for (var i = 0; i < 26; i++) {
+    FLIGHT_FRAMES.push("owl/f" + (i < 10 ? "0" : "") + i + ".png");
+  }
 
   function cell(col, row) {
     return (col * 33.33) + "% " + (row * 33.33) + "%";
@@ -61,6 +65,17 @@
       imgs[name] = img;
     });
 
+    var flightImgs = [];
+    FLIGHT_FRAMES.forEach(function (src) {
+      var img = new Image();
+      img.src = new URL(src, root).href;
+      img.alt = "";
+      img.draggable = false;
+      img.style.opacity = "0";
+      sprite.appendChild(img);
+      flightImgs.push(img);
+    });
+
     var button = document.createElement("button");
     button.type = "button";
     button.setAttribute("aria-label", "Night Owl. Click for a small hello.");
@@ -69,8 +84,8 @@
     function seatPoint(el) {
       var r = el.getBoundingClientRect();
       if (el.dataset.seat === "mast") {
-        console.log("Mast seat x:", r.right + 48);
-        return { x: r.right + 48, y: r.top + r.height * 0.5 };
+        // Lock to the N of the logo
+        return { x: r.left + r.width * 0.72, y: r.bottom - 4 };
       }
       var edge = el.dataset.seatEdge || "top";
       if (edge === "right") return { x: r.right - 8, y: r.top + r.height * 0.4 };
@@ -105,12 +120,17 @@
     var dragging = false;
     var dragOffset = { x: 0, y: 0 };
     var idlePhase = 0;
+    var flightFrame = 0;
+    var flightAccum = 0;
 
     function show(next) {
-      if (next === current) return;
+      if (next === current && next !== "flight") return;
       current = next;
       POSES.forEach(function (name) {
-        imgs[name].style.opacity = (name === next && !showReaction) ? "1" : "0";
+        imgs[name].style.opacity = (name === next && !showReaction && next !== "flight") ? "1" : "0";
+      });
+      flightImgs.forEach(function (img, i) {
+        img.style.opacity = (next === "flight" && i === flightFrame) ? "1" : "0";
       });
     }
     function pickSeat() {
@@ -236,39 +256,46 @@
       var dist = Math.hypot(tx - x, ty - y);
       if ((mode === "takeoff" || mode === "fly") && !reduced && !dragging) {
         var d = Math.max(1, dist);
-        var speed = 360;
-        var accel = Math.min(1, 2.0 * dt);
+        var speed = 280;
+        var accel = Math.min(1, 1.6 * dt);
         vx += ((tx - x) / d * speed - vx) * accel;
         vy += ((ty - y) / d * speed - vy) * accel;
-        if (mode === "fly" && dist > 100) {
-          var t = Math.min(1, modeT / 1.4);
-          vy += arcDir * 42 * Math.sin(t * Math.PI) * dt * 60;
+        if (mode === "fly" && dist > 80) {
+          var t = Math.min(1, modeT / 2.0);
+          vy += arcDir * 36 * Math.sin(t * Math.PI) * dt * 50;
         }
         x += vx * dt; y += vy * dt;
       } else if (!dragging) {
-        var follow = Math.min(1, dt * 10);
+        var follow = Math.min(1, dt * 8);
         x += (tx - x) * follow;
         y += (ty - y) * follow;
-        vx *= 0.45; vy *= 0.45;
+        vx *= 0.5; vy *= 0.5;
       }
 
       if (mode === "takeoff") {
         modeT += dt;
-        if (modeT > 0.34) {
-          mode = dist < 42 ? "land" : "fly";
+        if (modeT > 0.4) {
+          mode = dist < 50 ? "land" : "fly";
           modeT = 0;
+          flightFrame = 0;
           show(mode === "fly" ? "flight" : "landing");
         }
       } else if (mode === "fly") {
         modeT += dt;
-        if (dist < 32 && !dragging) { mode = "land"; modeT = 0; show("landing"); }
-        else if (vx < -22) flip = true;
-        else if (vx > 22) flip = false;
+        flightAccum += dt;
+        if (flightAccum > 0.09) {
+          flightAccum = 0;
+          flightFrame = (flightFrame + 1) % flightImgs.length;
+          show("flight");
+        }
+        if (dist < 40 && !dragging) { mode = "land"; modeT = 0; show("landing"); }
+        else if (vx < -18) flip = true;
+        else if (vx > 18) flip = false;
       } else if (mode === "land") {
         modeT += dt;
-        if (modeT > 0.38) {
+        if (modeT > 0.45) {
           mode = "sit"; flying = false; vx = 0; vy = 0; x = tx; y = ty;
-          boredAt = now + 8000 + Math.random() * 6000;
+          boredAt = now + 9000 + Math.random() * 7000;
           modeT = 0;
           show("perch");
         }
@@ -292,31 +319,30 @@
             else if (deg < 60 || deg > 300) row = 0;
             dirSheet.style.backgroundPosition = cell(col, row);
           }
-          boredAt = Math.max(boredAt, now + 7000);
+          boredAt = Math.max(boredAt, now + 8000);
           idlePhase = 0;
         } else {
-          if (idlePhase > 5.5) {
+          if (idlePhase > 6) {
             var roll = Math.random();
-            if (roll < 0.45) dirSheet.style.backgroundPosition = cell(1, 1);
-            else if (roll < 0.7) dirSheet.style.backgroundPosition = cell(0, 1);
-            else if (roll < 0.95) dirSheet.style.backgroundPosition = cell(2, 1);
-            else hopT = 0;
+            if (roll < 0.5) dirSheet.style.backgroundPosition = cell(1, 1);
+            else if (roll < 0.75) dirSheet.style.backgroundPosition = cell(0, 1);
+            else dirSheet.style.backgroundPosition = cell(2, 1);
             idlePhase = 0;
           }
         }
         dirSheet.style.opacity = "1";
       }
 
-      var width = window.innerWidth < 700 ? 120 : 148;
+      var width = window.innerWidth < 700 ? 56 : 68;
       var height = width * (SRC_H / SRC_W);
       var left = x - width / 2;
       var top = y - (FEET / SRC_H) * height;
-      var hopY = hopT >= 0 ? -Math.sin((hopT / 0.4) * Math.PI) * 16 : 0;
+      var hopY = hopT >= 0 ? -Math.sin((hopT / 0.4) * Math.PI) * 12 : 0;
       sprite.style.width = width + "px";
       sprite.style.height = height + "px";
       sprite.style.transform = "translate3d(" + left + "px," + (top + hopY) + "px,0) scaleX(" + (flip ? -1 : 1) + ")";
       shadow.style.transform = "translate3d(" + x + "px," + (y + 2) + "px,0)";
-      shadow.style.opacity = mode === "sit" ? "0.22" : "0.12";
+      shadow.style.opacity = mode === "sit" ? "0.18" : "0.08";
       if (!hello.hidden) {
         hello.style.transform = "translate3d(" + x + "px," + (top - 4) + "px,0) translate(-50%,-100%)";
       }
