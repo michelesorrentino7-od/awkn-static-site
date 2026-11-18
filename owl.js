@@ -1,6 +1,6 @@
-/* Night Owl v28 — flies again after idle, stays fixed when perched, flaps wings */
+/* Night Owl v29 — frequent flights, fixed perch, visible wing flap */
 (function () {
-  console.log("%cNight Owl v28 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
+  console.log("%cNight Owl v29 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
   var POSES = ["alert", "takeoff", "flight", "landing"];
@@ -22,9 +22,9 @@
     style.textContent = [
       "#awkn-owl{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden}",
       "#awkn-owl .sprite{position:absolute;top:0;left:0;will-change:transform}",
-      "#awkn-owl .sheet{position:absolute;inset:0;background-size:300% 300%;background-repeat:no-repeat;pointer-events:none;z-index:1}",
-      "#awkn-owl img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;z-index:2}",
-      "#awkn-owl img.flight{z-index:3;transition:none}",
+      "#awkn-owl .sheet{position:absolute;inset:0;background-size:300% 300%;background-repeat:no-repeat;pointer-events:none}",
+      "#awkn-owl img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}",
+      "#awkn-owl img.flight{transition:none;z-index:3}",
       "#awkn-owl button{position:absolute;left:12%;right:12%;top:8%;bottom:14%;border:0;padding:0;background:transparent;cursor:pointer;pointer-events:auto;z-index:4}",
       "#awkn-owl .shadow{position:absolute;width:56px;height:14px;margin:-7px 0 0 -28px;border-radius:50%;background:rgba(61,31,92,.28);filter:blur(5px);pointer-events:none}",
       "#awkn-owl .hello{position:absolute;background:#3D1F5C;color:#fff;font:500 13px/1.3 Inter,system-ui,sans-serif;padding:8px 12px;border-radius:14px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}",
@@ -94,8 +94,8 @@
     function seatNearEdge(el) {
       if (!el) return false;
       var r = el.getBoundingClientRect();
-      var margin = 80;
-      return r.top < margin || r.bottom > window.innerHeight - margin || r.left < 40 || r.right > window.innerWidth - 40;
+      var margin = 50;
+      return r.top < margin || r.bottom > window.innerHeight - margin || r.left < 20 || r.right > window.innerWidth - 20;
     }
     function corner() {
       return { x: window.innerWidth - 72, y: window.innerHeight - 24 };
@@ -108,7 +108,7 @@
     var flying = false;
     var mode = "sit";
     var modeT = 0;
-    var boredAt = performance.now() + 8000;
+    var boredAt = performance.now() + 5000;
     var hopT = -1;
     var flip = false;
     var last = performance.now();
@@ -126,7 +126,6 @@
     var locked = true;
 
     function show(next) {
-      if (next === current && next !== "flight") return;
       current = next;
       var isFlight = next === "flight";
       dirSheet.style.opacity = (isFlight || showReaction) ? "0" : "1";
@@ -157,6 +156,7 @@
     }
     function takeoff() {
       if (flying || mode !== "sit" || reduced || dragging) return;
+      console.log("Owl taking off");
       var next = pickSeat();
       if (next) {
         seat = next;
@@ -239,7 +239,7 @@
 
       var near = pointer.on && Math.hypot(pointer.x - x, pointer.y - y) < 220;
 
-      // Fly if seat near edge OR after sitting idle for a while
+      // More frequent takeoff
       if (!flying && !dragging && !near && !reduced) {
         if (seat && seatNearEdge(seat)) takeoff();
         else if (now > boredAt) takeoff();
@@ -258,8 +258,6 @@
       }
       if (flying && seat && !dragging) {
         var p = seatPoint(seat); tx = p.x; ty = p.y;
-      } else if (!flying && !locked && seat && !dragging) {
-        var p2 = seatPoint(seat); tx = p2.x; ty = p2.y;
       } else if (!flying && !seat && !dragging) {
         var c2 = corner(); tx = c2.x; ty = c2.y;
       }
@@ -267,13 +265,13 @@
       var dist = Math.hypot(tx - x, ty - y);
       if ((mode === "takeoff" || mode === "fly") && !reduced && !dragging) {
         var d = Math.max(1, dist);
-        var speed = 200;
-        var accel = Math.min(1, 1.3 * dt);
+        var speed = 220;
+        var accel = Math.min(1, 1.4 * dt);
         vx += ((tx - x) / d * speed - vx) * accel;
         vy += ((ty - y) / d * speed - vy) * accel;
-        if (mode === "fly" && dist > 50) {
-          var t = Math.min(1, modeT / 2.5);
-          vy += arcDir * 24 * Math.sin(t * Math.PI) * dt * 35;
+        if (mode === "fly" && dist > 40) {
+          var t = Math.min(1, modeT / 2.0);
+          vy += arcDir * 28 * Math.sin(t * Math.PI) * dt * 40;
         }
         x += vx * dt; y += vy * dt;
       } else if (!dragging && !locked) {
@@ -285,8 +283,8 @@
 
       if (mode === "takeoff") {
         modeT += dt;
-        if (modeT > 0.3) {
-          mode = dist < 50 ? "land" : "fly";
+        if (modeT > 0.28) {
+          mode = dist < 40 ? "land" : "fly";
           modeT = 0;
           flightFrame = 0;
           show(mode === "fly" ? "flight" : "landing");
@@ -294,20 +292,20 @@
       } else if (mode === "fly") {
         modeT += dt;
         flightAccum += dt;
-        if (flightAccum > 0.045) {
+        if (flightAccum > 0.04) {
           flightAccum = 0;
           flightFrame = (flightFrame + 1) % flightImgs.length;
           show("flight");
         }
-        if (dist < 30 && !dragging && modeT > 0.8) { mode = "land"; modeT = 0; show("landing"); }
+        if (dist < 28 && !dragging && modeT > 0.6) { mode = "land"; modeT = 0; show("landing"); }
         else if (vx < -14) flip = true;
         else if (vx > 14) flip = false;
       } else if (mode === "land") {
         modeT += dt;
-        if (modeT > 0.35) {
+        if (modeT > 0.32) {
           mode = "sit"; flying = false; vx = 0; vy = 0; x = tx; y = ty;
           locked = true;
-          boredAt = now + 8000 + Math.random() * 6000;
+          boredAt = now + 5000 + Math.random() * 4000;
           modeT = 0;
           show("perch");
         }
@@ -331,10 +329,10 @@
             else if (deg < 60 || deg > 300) row = 0;
             dirSheet.style.backgroundPosition = cell(col, row);
           }
-          boredAt = Math.max(boredAt, now + 7000);
+          boredAt = Math.max(boredAt, now + 5000);
           idlePhase = 0;
         } else {
-          if (idlePhase > 6) {
+          if (idlePhase > 5) {
             var roll = Math.random();
             if (roll < 0.5) dirSheet.style.backgroundPosition = cell(1, 1);
             else if (roll < 0.75) dirSheet.style.backgroundPosition = cell(0, 1);
@@ -350,7 +348,7 @@
       var top = y - (FEET / SRC_H) * height;
       var hopY = hopT >= 0 ? -Math.sin((hopT / 0.4) * Math.PI) * 12 : 0;
       if (mode === "fly") {
-        hopY += Math.sin(modeT * 22) * 4;
+        hopY += Math.sin(modeT * 24) * 5;
       }
       sprite.style.width = width + "px";
       sprite.style.height = height + "px";
