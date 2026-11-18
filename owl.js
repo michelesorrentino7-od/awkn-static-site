@@ -1,6 +1,6 @@
-/* Night Owl v25 — stay fixed when perched, fly on edge hit, flap wings */
+/* Night Owl v26 — clearer continuous wing flap during flight */
 (function () {
-  console.log("%cNight Owl v25 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
+  console.log("%cNight Owl v26 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
   var POSES = ["alert", "takeoff", "flight", "landing"];
@@ -8,10 +8,10 @@
   var DEAD_ZONE = 80;
   var DIR_SHEET = "https://raw.githubusercontent.com/michelesorrentino7-od/owl-mascot/main/public/owl/mascots/owl-directions.webp";
   var REACT_SHEET = "https://raw.githubusercontent.com/michelesorrentino7-od/owl-mascot/main/public/owl/mascots/owl-reactions.webp";
-  var FLIGHT_FRAMES = [];
-  for (var i = 0; i < 26; i++) {
-    FLIGHT_FRAMES.push("owl/f" + (i < 10 ? "0" : "") + i + ".png");
-  }
+  // Curated extreme wing positions for visible flap
+  var FLIGHT_FRAMES = [0, 3, 6, 9, 12, 15, 18, 21, 24].map(function(i) {
+    return "owl/f" + (i < 10 ? "0" : "") + i + ".png";
+  });
 
   function cell(col, row) {
     return (col * 33.33) + "% " + (row * 33.33) + "%";
@@ -24,7 +24,8 @@
       "#awkn-owl{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden}",
       "#awkn-owl .sprite{position:absolute;top:0;left:0;will-change:transform}",
       "#awkn-owl .sheet{position:absolute;inset:0;background-size:300% 300%;background-repeat:no-repeat;pointer-events:none}",
-      "#awkn-owl img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;transition:opacity .15s}",
+      "#awkn-owl img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}",
+      "#awkn-owl img.flight{transition:none}",
       "#awkn-owl button{position:absolute;left:12%;right:12%;top:8%;bottom:14%;border:0;padding:0;background:transparent;cursor:pointer;pointer-events:auto}",
       "#awkn-owl .shadow{position:absolute;width:56px;height:14px;margin:-7px 0 0 -28px;border-radius:50%;background:rgba(61,31,92,.28);filter:blur(5px);pointer-events:none}",
       "#awkn-owl .hello{position:absolute;background:#3D1F5C;color:#fff;font:500 13px/1.3 Inter,system-ui,sans-serif;padding:8px 12px;border-radius:14px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}",
@@ -70,6 +71,7 @@
       img.src = new URL(src, root).href;
       img.alt = "";
       img.draggable = false;
+      img.className = "flight";
       img.style.opacity = "0";
       sprite.appendChild(img);
       flightImgs.push(img);
@@ -122,7 +124,7 @@
     var idlePhase = 0;
     var flightFrame = 0;
     var flightAccum = 0;
-    var locked = true; // freeze position while sitting
+    var locked = true;
 
     function show(next) {
       if (next === current && next !== "flight") return;
@@ -240,7 +242,6 @@
 
       var near = pointer.on && Math.hypot(pointer.x - x, pointer.y - y) < 220;
 
-      // Stay locked when sitting. Only fly if the seat is near the edge of the screen.
       if (!flying && !dragging && seat && seatNearEdge(seat) && !near && !reduced) takeoff();
       if (!flying && !dragging && !seat && !near && !reduced) takeoff();
 
@@ -264,13 +265,13 @@
       var dist = Math.hypot(tx - x, ty - y);
       if ((mode === "takeoff" || mode === "fly") && !reduced && !dragging) {
         var d = Math.max(1, dist);
-        var speed = 280;
-        var accel = Math.min(1, 1.6 * dt);
+        var speed = 220; // slightly slower so flap is more visible
+        var accel = Math.min(1, 1.4 * dt);
         vx += ((tx - x) / d * speed - vx) * accel;
         vy += ((ty - y) / d * speed - vy) * accel;
-        if (mode === "fly" && dist > 80) {
-          var t = Math.min(1, modeT / 2.0);
-          vy += arcDir * 36 * Math.sin(t * Math.PI) * dt * 50;
+        if (mode === "fly" && dist > 60) {
+          var t = Math.min(1, modeT / 2.2);
+          vy += arcDir * 28 * Math.sin(t * Math.PI) * dt * 40;
         }
         x += vx * dt; y += vy * dt;
       } else if (!dragging && !locked) {
@@ -282,7 +283,7 @@
 
       if (mode === "takeoff") {
         modeT += dt;
-        if (modeT > 0.4) {
+        if (modeT > 0.35) {
           mode = dist < 50 ? "land" : "fly";
           modeT = 0;
           flightFrame = 0;
@@ -291,19 +292,19 @@
       } else if (mode === "fly") {
         modeT += dt;
         flightAccum += dt;
-        if (flightAccum > 0.09) {
+        if (flightAccum > 0.055) { // faster ~18fps flap
           flightAccum = 0;
           flightFrame = (flightFrame + 1) % flightImgs.length;
           show("flight");
         }
-        if (dist < 40 && !dragging) { mode = "land"; modeT = 0; show("landing"); }
-        else if (vx < -18) flip = true;
-        else if (vx > 18) flip = false;
+        if (dist < 36 && !dragging) { mode = "land"; modeT = 0; show("landing"); }
+        else if (vx < -16) flip = true;
+        else if (vx > 16) flip = false;
       } else if (mode === "land") {
         modeT += dt;
-        if (modeT > 0.45) {
+        if (modeT > 0.4) {
           mode = "sit"; flying = false; vx = 0; vy = 0; x = tx; y = ty;
-          locked = true; // freeze again
+          locked = true;
           boredAt = now + 9000 + Math.random() * 7000;
           modeT = 0;
           show("perch");
@@ -347,6 +348,10 @@
       var left = x - width / 2;
       var top = y - (FEET / SRC_H) * height;
       var hopY = hopT >= 0 ? -Math.sin((hopT / 0.4) * Math.PI) * 12 : 0;
+      // small vertical bob during flap to emphasize motion
+      if (mode === "fly") {
+        hopY += Math.sin(modeT * 18) * 3;
+      }
       sprite.style.width = width + "px";
       sprite.style.height = height + "px";
       sprite.style.transform = "translate3d(" + left + "px," + (top + hopY) + "px,0) scaleX(" + (flip ? -1 : 1) + ")";
