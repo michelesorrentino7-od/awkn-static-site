@@ -1,6 +1,6 @@
-/* Night Owl v26 — clearer continuous wing flap during flight */
+/* Night Owl v27 — force visible wing flap frames during flight */
 (function () {
-  console.log("%cNight Owl v26 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
+  console.log("%cNight Owl v27 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
   var POSES = ["alert", "takeoff", "flight", "landing"];
@@ -8,8 +8,7 @@
   var DEAD_ZONE = 80;
   var DIR_SHEET = "https://raw.githubusercontent.com/michelesorrentino7-od/owl-mascot/main/public/owl/mascots/owl-directions.webp";
   var REACT_SHEET = "https://raw.githubusercontent.com/michelesorrentino7-od/owl-mascot/main/public/owl/mascots/owl-reactions.webp";
-  // Curated extreme wing positions for visible flap
-  var FLIGHT_FRAMES = [0, 3, 6, 9, 12, 15, 18, 21, 24].map(function(i) {
+  var FLIGHT_FRAMES = [0, 2, 5, 8, 11, 14, 17, 20, 23].map(function(i) {
     return "owl/f" + (i < 10 ? "0" : "") + i + ".png";
   });
 
@@ -23,10 +22,10 @@
     style.textContent = [
       "#awkn-owl{position:fixed;inset:0;z-index:40;pointer-events:none;overflow:hidden}",
       "#awkn-owl .sprite{position:absolute;top:0;left:0;will-change:transform}",
-      "#awkn-owl .sheet{position:absolute;inset:0;background-size:300% 300%;background-repeat:no-repeat;pointer-events:none}",
-      "#awkn-owl img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}",
-      "#awkn-owl img.flight{transition:none}",
-      "#awkn-owl button{position:absolute;left:12%;right:12%;top:8%;bottom:14%;border:0;padding:0;background:transparent;cursor:pointer;pointer-events:auto}",
+      "#awkn-owl .sheet{position:absolute;inset:0;background-size:300% 300%;background-repeat:no-repeat;pointer-events:none;z-index:1}",
+      "#awkn-owl img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;z-index:2}",
+      "#awkn-owl img.flight{z-index:3;transition:none}",
+      "#awkn-owl button{position:absolute;left:12%;right:12%;top:8%;bottom:14%;border:0;padding:0;background:transparent;cursor:pointer;pointer-events:auto;z-index:4}",
       "#awkn-owl .shadow{position:absolute;width:56px;height:14px;margin:-7px 0 0 -28px;border-radius:50%;background:rgba(61,31,92,.28);filter:blur(5px);pointer-events:none}",
       "#awkn-owl .hello{position:absolute;background:#3D1F5C;color:#fff;font:500 13px/1.3 Inter,system-ui,sans-serif;padding:8px 12px;border-radius:14px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s}",
       "#awkn-owl .hello:after{content:'';position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-top-color:#3D1F5C;border-bottom:0}"
@@ -129,11 +128,14 @@
     function show(next) {
       if (next === current && next !== "flight") return;
       current = next;
+      var isFlight = next === "flight";
+      dirSheet.style.opacity = (isFlight || showReaction) ? "0" : "1";
+      reactSheet.style.opacity = showReaction ? "1" : "0";
       POSES.forEach(function (name) {
-        imgs[name].style.opacity = (name === next && !showReaction && next !== "flight") ? "1" : "0";
+        imgs[name].style.opacity = (name === next && !showReaction && !isFlight) ? "1" : "0";
       });
       flightImgs.forEach(function (img, i) {
-        img.style.opacity = (next === "flight" && i === flightFrame) ? "1" : "0";
+        img.style.opacity = (isFlight && i === flightFrame) ? "1" : "0";
       });
     }
     function pickSeat() {
@@ -173,8 +175,6 @@
       flip = tx < x - 12;
       show("takeoff");
       showReaction = false;
-      reactSheet.style.opacity = "0";
-      dirSheet.style.opacity = "1";
     }
 
     button.addEventListener("click", function (event) {
@@ -189,8 +189,6 @@
       }
       showReaction = true;
       reactionUntil = performance.now() + 600;
-      dirSheet.style.opacity = "0";
-      reactSheet.style.opacity = "1";
       var cells = [[1,0],[0,1],[2,1],[1,2],[0,0]];
       var pick = cells[Math.floor(Math.random() * cells.length)];
       reactSheet.style.backgroundPosition = cell(pick[0], pick[1]);
@@ -236,8 +234,7 @@
       if (reactionUntil && now > reactionUntil) {
         reactionUntil = 0;
         showReaction = false;
-        reactSheet.style.opacity = "0";
-        dirSheet.style.opacity = "1";
+        show(current);
       }
 
       var near = pointer.on && Math.hypot(pointer.x - x, pointer.y - y) < 220;
@@ -265,13 +262,13 @@
       var dist = Math.hypot(tx - x, ty - y);
       if ((mode === "takeoff" || mode === "fly") && !reduced && !dragging) {
         var d = Math.max(1, dist);
-        var speed = 220; // slightly slower so flap is more visible
-        var accel = Math.min(1, 1.4 * dt);
+        var speed = 200;
+        var accel = Math.min(1, 1.3 * dt);
         vx += ((tx - x) / d * speed - vx) * accel;
         vy += ((ty - y) / d * speed - vy) * accel;
-        if (mode === "fly" && dist > 60) {
-          var t = Math.min(1, modeT / 2.2);
-          vy += arcDir * 28 * Math.sin(t * Math.PI) * dt * 40;
+        if (mode === "fly" && dist > 50) {
+          var t = Math.min(1, modeT / 2.5);
+          vy += arcDir * 24 * Math.sin(t * Math.PI) * dt * 35;
         }
         x += vx * dt; y += vy * dt;
       } else if (!dragging && !locked) {
@@ -283,7 +280,7 @@
 
       if (mode === "takeoff") {
         modeT += dt;
-        if (modeT > 0.35) {
+        if (modeT > 0.3) {
           mode = dist < 50 ? "land" : "fly";
           modeT = 0;
           flightFrame = 0;
@@ -292,17 +289,17 @@
       } else if (mode === "fly") {
         modeT += dt;
         flightAccum += dt;
-        if (flightAccum > 0.055) { // faster ~18fps flap
+        if (flightAccum > 0.045) {
           flightAccum = 0;
           flightFrame = (flightFrame + 1) % flightImgs.length;
           show("flight");
         }
-        if (dist < 36 && !dragging) { mode = "land"; modeT = 0; show("landing"); }
-        else if (vx < -16) flip = true;
-        else if (vx > 16) flip = false;
+        if (dist < 30 && !dragging && modeT > 0.8) { mode = "land"; modeT = 0; show("landing"); }
+        else if (vx < -14) flip = true;
+        else if (vx > 14) flip = false;
       } else if (mode === "land") {
         modeT += dt;
-        if (modeT > 0.4) {
+        if (modeT > 0.35) {
           mode = "sit"; flying = false; vx = 0; vy = 0; x = tx; y = ty;
           locked = true;
           boredAt = now + 9000 + Math.random() * 7000;
@@ -340,7 +337,6 @@
             idlePhase = 0;
           }
         }
-        dirSheet.style.opacity = "1";
       }
 
       var width = window.innerWidth < 700 ? 56 : 68;
@@ -348,9 +344,8 @@
       var left = x - width / 2;
       var top = y - (FEET / SRC_H) * height;
       var hopY = hopT >= 0 ? -Math.sin((hopT / 0.4) * Math.PI) * 12 : 0;
-      // small vertical bob during flap to emphasize motion
       if (mode === "fly") {
-        hopY += Math.sin(modeT * 18) * 3;
+        hopY += Math.sin(modeT * 22) * 4;
       }
       sprite.style.width = width + "px";
       sprite.style.height = height + "px";
