@@ -1,6 +1,6 @@
-/* Night Owl v27 — force visible wing flap frames during flight */
+/* Night Owl v28 — flies again after idle, stays fixed when perched, flaps wings */
 (function () {
-  console.log("%cNight Owl v27 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
+  console.log("%cNight Owl v28 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
   var POSES = ["alert", "takeoff", "flight", "landing"];
@@ -108,7 +108,7 @@
     var flying = false;
     var mode = "sit";
     var modeT = 0;
-    var boredAt = performance.now() + 12000;
+    var boredAt = performance.now() + 8000;
     var hopT = -1;
     var flip = false;
     var last = performance.now();
@@ -239,7 +239,11 @@
 
       var near = pointer.on && Math.hypot(pointer.x - x, pointer.y - y) < 220;
 
-      if (!flying && !dragging && seat && seatNearEdge(seat) && !near && !reduced) takeoff();
+      // Fly if seat near edge OR after sitting idle for a while
+      if (!flying && !dragging && !near && !reduced) {
+        if (seat && seatNearEdge(seat)) takeoff();
+        else if (now > boredAt) takeoff();
+      }
       if (!flying && !dragging && !seat && !near && !reduced) takeoff();
 
       if (flying && seat && seatNearEdge(seat)) {
@@ -248,7 +252,8 @@
           seat = next;
           var p = seatPoint(next); tx = p.x; ty = p.y;
         } else {
-          var c = corner(); tx = c.x; ty = c.y;
+          var c = corner();
+          tx = c.x; ty = c.y;
         }
       }
       if (flying && seat && !dragging) {
@@ -302,7 +307,7 @@
         if (modeT > 0.35) {
           mode = "sit"; flying = false; vx = 0; vy = 0; x = tx; y = ty;
           locked = true;
-          boredAt = now + 9000 + Math.random() * 7000;
+          boredAt = now + 8000 + Math.random() * 6000;
           modeT = 0;
           show("perch");
         }
@@ -326,7 +331,7 @@
             else if (deg < 60 || deg > 300) row = 0;
             dirSheet.style.backgroundPosition = cell(col, row);
           }
-          boredAt = Math.max(boredAt, now + 8000);
+          boredAt = Math.max(boredAt, now + 7000);
           idlePhase = 0;
         } else {
           if (idlePhase > 6) {
