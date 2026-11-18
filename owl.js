@@ -1,6 +1,6 @@
-/* Night Owl v29 — frequent flights, fixed perch, visible wing flap */
+/* Night Owl v30 — forced flight, visible flap — frequent flights, fixed perch, visible wing flap */
 (function () {
-  console.log("%cNight Owl v29 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
+  console.log("%cNight Owl v30 — forced flight, visible flap loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
   var POSES = ["alert", "takeoff", "flight", "landing"];
@@ -108,7 +108,7 @@
     var flying = false;
     var mode = "sit";
     var modeT = 0;
-    var boredAt = performance.now() + 5000;
+    var boredAt = performance.now() + 4000;
     var hopT = -1;
     var flip = false;
     var last = performance.now();
@@ -239,12 +239,12 @@
 
       var near = pointer.on && Math.hypot(pointer.x - x, pointer.y - y) < 220;
 
-      // More frequent takeoff
-      if (!flying && !dragging && !near && !reduced) {
-        if (seat && seatNearEdge(seat)) takeoff();
-        else if (now > boredAt) takeoff();
+      // Force takeoff after idle, ignore reduced-motion for visibility
+      if (!flying && !dragging && !near) {
+        if (now > boredAt) takeoff();
+        else if (seat && seatNearEdge(seat)) takeoff();
       }
-      if (!flying && !dragging && !seat && !near && !reduced) takeoff();
+      if (!flying && !dragging && !seat && !near) takeoff();
 
       if (flying && seat && seatNearEdge(seat)) {
         var next = pickSeat();
@@ -305,7 +305,7 @@
         if (modeT > 0.32) {
           mode = "sit"; flying = false; vx = 0; vy = 0; x = tx; y = ty;
           locked = true;
-          boredAt = now + 5000 + Math.random() * 4000;
+          boredAt = now + 4000 + Math.random() * 3000;
           modeT = 0;
           show("perch");
         }
