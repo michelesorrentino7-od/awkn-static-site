@@ -1,7 +1,6 @@
-/* Night Owl v24 — continuous wing flap cycle during flight
-   Uses dense f00-f25 frames for precise wing animation. */
+/* Night Owl v25 — stay fixed when perched, fly on edge hit, flap wings */
 (function () {
-  console.log("%cNight Owl v24 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
+  console.log("%cNight Owl v25 loaded", "background:#3D1F5C;color:#fff;padding:2px 6px;border-radius:3px");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var SRC_W = 700, SRC_H = 800, FEET = 740;
   var POSES = ["alert", "takeoff", "flight", "landing"];
@@ -84,7 +83,6 @@
     function seatPoint(el) {
       var r = el.getBoundingClientRect();
       if (el.dataset.seat === "mast") {
-        // Lock to the N of the logo
         return { x: r.left + r.width * 0.72, y: r.bottom - 4 };
       }
       var edge = el.dataset.seatEdge || "top";
@@ -92,9 +90,11 @@
       if (edge === "bottom") return { x: r.right - 56, y: r.bottom - 2 };
       return { x: r.left + Math.min(r.width * 0.62, r.width - 36), y: r.top + 1 };
     }
-    function seatVisible(el) {
+    function seatNearEdge(el) {
+      if (!el) return false;
       var r = el.getBoundingClientRect();
-      return r.top >= -20 && r.top < window.innerHeight - 140 && r.right > 40 && r.left < window.innerWidth - 40;
+      var margin = 80;
+      return r.top < margin || r.bottom > window.innerHeight - margin || r.left < 40 || r.right > window.innerWidth - 40;
     }
     function corner() {
       return { x: window.innerWidth - 72, y: window.innerHeight - 24 };
@@ -122,6 +122,7 @@
     var idlePhase = 0;
     var flightFrame = 0;
     var flightAccum = 0;
+    var locked = true; // freeze position while sitting
 
     function show(next) {
       if (next === current && next !== "flight") return;
@@ -135,7 +136,7 @@
     }
     function pickSeat() {
       var all = Array.prototype.filter.call(document.querySelectorAll("[data-seat]"), function (el) {
-        return el !== seat && seatVisible(el);
+        return el !== seat && !seatNearEdge(el);
       });
       if (!all.length) return null;
       var midY = window.innerHeight * 0.42;
@@ -163,6 +164,7 @@
         tx = c.x; ty = c.y;
       }
       flying = true;
+      locked = false;
       mode = "takeoff";
       modeT = 0;
       arcDir = Math.random() > 0.5 ? 1 : -1;
@@ -213,6 +215,7 @@
         vx = (pointer.x - (x + dragOffset.x)) * 0.4;
         vy = (pointer.y - (y + dragOffset.y)) * 0.4;
         flying = true;
+        locked = false;
         mode = "fly";
         show("flight");
       }
@@ -236,18 +239,23 @@
       }
 
       var near = pointer.on && Math.hypot(pointer.x - x, pointer.y - y) < 220;
-      if (!flying && !dragging && seat && !seatVisible(seat) && !near && !reduced) takeoff();
-      if (!flying && !dragging && !seat && !near && !reduced) takeoff();
-      if (!flying && !dragging && !near && !reduced && now > boredAt) takeoff();
 
-      if (flying && seat && !seatVisible(seat)) {
+      // Stay locked when sitting. Only fly if the seat is near the edge of the screen.
+      if (!flying && !dragging && seat && seatNearEdge(seat) && !near && !reduced) takeoff();
+      if (!flying && !dragging && !seat && !near && !reduced) takeoff();
+
+      if (flying && seat && seatNearEdge(seat)) {
         var next = pickSeat();
-        seat = next;
-        if (!next) { var c = corner(); tx = c.x; ty = c.y; }
+        if (next) {
+          seat = next;
+          var p = seatPoint(next); tx = p.x; ty = p.y;
+        } else {
+          var c = corner(); tx = c.x; ty = c.y;
+        }
       }
       if (flying && seat && !dragging) {
         var p = seatPoint(seat); tx = p.x; ty = p.y;
-      } else if (!flying && seat && seatVisible(seat) && !dragging) {
+      } else if (!flying && !locked && seat && !dragging) {
         var p2 = seatPoint(seat); tx = p2.x; ty = p2.y;
       } else if (!flying && !seat && !dragging) {
         var c2 = corner(); tx = c2.x; ty = c2.y;
@@ -265,7 +273,7 @@
           vy += arcDir * 36 * Math.sin(t * Math.PI) * dt * 50;
         }
         x += vx * dt; y += vy * dt;
-      } else if (!dragging) {
+      } else if (!dragging && !locked) {
         var follow = Math.min(1, dt * 8);
         x += (tx - x) * follow;
         y += (ty - y) * follow;
@@ -295,6 +303,7 @@
         modeT += dt;
         if (modeT > 0.45) {
           mode = "sit"; flying = false; vx = 0; vy = 0; x = tx; y = ty;
+          locked = true; // freeze again
           boredAt = now + 9000 + Math.random() * 7000;
           modeT = 0;
           show("perch");
